@@ -1,101 +1,163 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+
+export default function QuizPage() {
+  const questions = [
+    {
+      question: "What is the capital of France?",
+      options: ["Berlin", "Madrid", "Paris", "Rome"],
+      correctAnswer: "Paris",
+    },
+    {
+      question: "Who wrote 'Hamlet'?",
+      options: ["Charles Dickens", "William Shakespeare", "J.K. Rowling", "Mark Twain"],
+      correctAnswer: "William Shakespeare",
+    },
+    {
+      question: "What is 2 + 2?",
+      options: ["3", "4", "5", "6"],
+      correctAnswer: "4",
+    },
+    {
+      question: "Which planet is known as the Red Planet?",
+      options: ["Earth", "Mars", "Venus", "Jupiter"],
+      correctAnswer: "Mars",
+    },
+    {
+      question: "What is the largest mammal?",
+      options: ["Elephant", "Blue Whale", "Giraffe", "Polar Bear"],
+      correctAnswer: "Blue Whale",
+    },
+    {
+      question: "What is the chemical symbol for water?",
+      options: ["O2", "H2O", "CO2", "NaCl"],
+      correctAnswer: "H2O",
+    },
+    {
+      question: "Which continent is the Sahara Desert located on?",
+      options: ["Asia", "Africa", "Australia", "South America"],
+      correctAnswer: "Africa",
+    },
+    {
+      question: "What is the currency of Japan?",
+      options: ["Yuan", "Won", "Yen", "Rupee"],
+      correctAnswer: "Yen",
+    },
+    {
+      question: "Who painted the Mona Lisa?",
+      options: ["Van Gogh", "Leonardo da Vinci", "Michelangelo", "Raphael"],
+      correctAnswer: "Leonardo da Vinci",
+    },
+    {
+      question: "What is the boiling point of water at sea level?",
+      options: ["100°C", "90°C", "80°C", "110°C"],
+      correctAnswer: "100°C",
+    },
+  ];
+
+  const [answers, setAnswers] = useState<(string | null)[]>(Array(questions.length).fill(null));
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes timer
+  const [quizCompleted, setQuizCompleted] = useState(false);
+
+  useEffect(() => {
+    if (timeLeft > 0 && !quizCompleted) {
+      const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [timeLeft, quizCompleted]);
+
+  const handleAnswerChange = (index: number, answer: string) => {
+    const updatedAnswers = [...answers];
+    updatedAnswers[index] = answer;
+    setAnswers(updatedAnswers);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    const correctCount = questions.reduce((acc, question, index) => {
+      return acc + (answers[index] === question.correctAnswer ? 1 : 0);
+    }, 0);
+    setScore(correctCount);
+    setQuizCompleted(true);
+  };
+
+  const handleRetry = () => {
+    setAnswers(Array(questions.length).fill(null));
+    setCurrentIndex(0);
+    setScore(null);
+    setTimeLeft(600);
+    setQuizCompleted(false);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div>
+      <h1>Quiz Application</h1>
+      {!quizCompleted ? (
+        <div>
+          <div className="timer">Time Left: {Math.floor(timeLeft / 60)}:{timeLeft % 60}</div>
+          <div className="quiz-question">{questions[currentIndex].question}</div>
+          <div>
+            {questions[currentIndex].options.map((option) => (
+              <label key={option}>
+                <input
+                  type="radio"
+                  name={`question-${currentIndex}`}
+                  value={option}
+                  checked={answers[currentIndex] === option}
+                  onChange={() => handleAnswerChange(currentIndex, option)}
+                />
+                {option}
+              </label>
+            ))}
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <div className="progress">
+            Question {currentIndex + 1} of {questions.length}
+          </div>
+
+          <div>
+            <button onClick={handlePrevious} disabled={currentIndex === 0}>
+              Previous
+            </button>
+            <button onClick={handleNext} disabled={currentIndex === questions.length - 1}>
+              Next
+            </button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      ) : (
+        <div>
+          <div className="result">
+            Your Score: {score} / {questions.length}
+          </div>
+          <div>
+            {questions.map((q, index) => (
+              <div key={index}>
+                <div>{q.question}</div>
+                <div>
+                  Correct Answer: {q.correctAnswer}, Your Answer: {answers[index] || "Not Answered"}
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={handleRetry}>Retry Quiz</button>
+        </div>
+      )}
+
+      <footer>Thank you for playing!</footer>
     </div>
   );
 }
